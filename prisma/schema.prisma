@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+  files     File[]
+
+  @@map("users")
+}
+
+model File {
+  id              Int       @id @default(autoincrement())
+  userId          Int       @map("user_id")
+  originalFilename String   @map("original_filename")
+  storagePath     String   @map("storage_path")
+  title           String?
+  description     String?
+  status          String   @default("uploaded")
+  extractedData   String?  @map("extracted_data")
+  uploadedAt      DateTime @default(now()) @map("uploaded_at")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs            Job[]
+
+  @@map("files")
+}
+
+model Job {
+  id           Int       @id @default(autoincrement())
+  fileId       Int       @map("file_id")
+  jobType      String    @map("job_type")
+  status       String
+  errorMessage String?   @map("error_message")
+  startedAt    DateTime? @map("started_at")
+  completedAt  DateTime? @map("completed_at")
+  file         File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@map("jobs")
+} 
